@@ -1,6 +1,9 @@
 const http = require('http');
 const express = require('express');
 const morgen = require('morgan');
+const courseRouter = require('./routers/courseRouter');
+const professorRouter = require('./routers/professorRouter');
+const studentRouter = require('./routers/studentRouter');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
@@ -8,47 +11,50 @@ const hostname = 'localhost'
 
 app.use(morgen('dev'));
 app.use(bodyParser.json());
+app.use('/courses', courseRouter);
+app.use('/teachers', professorRouter);
+app.use('/students', studentRouter);
+// app.use('/courses/:courseID', courseRouter);
+// app.all('/courses', (_req, res, next) => {
+//     res.statusCode = 200;
+//     res.setHeader('Content-Type', 'text/plain');
+//     next();
+// });
 
-app.all('/courses', (_req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-});
+// app.get('/courses', (_req, res, _next) => {
+//     res.end("Will show all courses!");
+// });
 
-app.get('/courses', (_req, res, _next) => {
-    res.end("Will show all courses!");
-});
+// app.post('/courses', (req, res, _next) => {
+//     res.end("Will add the course: " + req.body.name + ": " + req.body.description);
+// });
 
-app.post('/courses', (req, res, _next) => {
-    res.end("Will add the course: " + req.body.name + ": " + req.body.description);
-});
+// app.put('/courses', (_req, res, _next) => {
+//     res.statusCode = 403;
+//     res.end("Update operation does not support at /courses!");
+// });
 
-app.put('/courses', (_req, res, _next) => {
-    res.statusCode = 403;
-    res.end("Update operation does not support at /courses!");
-});
+// app.delete('/courses', (_req, res, _next) => {
+//     res.end("Will delete all courses!");
+// });
 
-app.delete('/courses', (_req, res, _next) => {
-    res.end("Will delete all courses!");
-});
+// app.get('/courses/:courseID', (req, res, _next) => {
+//     res.end("Will send detail about course: " + req.body.name + " with courseID: " + req.params.courseID);
+// });
 
-app.get('/courses/:courseID', (req, res, _next) => {
-    res.end("Will send detail about course: " + req.body.name + " with courseID: " + req.params.courseID);
-});
+// app.post('/courses/:courseID', (req, res, _next) => {
+//     res.statusCode = 403;
+//     res.end("Add operation does not suppport at /course/" + req.params.courseID);
+// });
 
-app.post('/courses/:courseID', (req, res, _next) => {
-    res.statusCode = 403;
-    res.end("Add operation does not suppport at /course/" + req.params.courseID);
-});
+// app.put('/courses/:courseID', (req, res, _next) => {
+//     res.write("Update the course: " + req.body.name + "'s ID to " + req.params.courseID + "\n");
+//     res.end("Updated the course: " + req.body.name + " with course ID: " + req.params.courseID);
+// });
 
-app.put('/courses/:courseID', (req, res, _next) => {
-    res.write("Update the course: " + req.body.name + "'s ID to " + req.params.courseID + "\n");
-    res.end("Updated the course: " + req.body.name + " with course ID: " + req.params.courseID);
-});
-
-app.delete('/courses/:courseID', (req, res, _next) => {
-    res.end("Delete the course: " + req.body.name + " with course ID: " + req.params.courseID);
-});
+// app.delete('/courses/:courseID', (req, res, _next) => {
+//     res.end("Delete the course: " + req.body.name + " with course ID: " + req.params.courseID);
+// });
 
 
 
