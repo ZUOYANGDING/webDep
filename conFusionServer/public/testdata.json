@@ -1,0 +1,40 @@
+{
+    "name": "CS180",
+    "major": "Computer Science",
+    "label": "Elementary Course",
+    "price": "30.00",
+    "featured": "true",
+    "description": "An elementary course for introduction for JAVA programming",
+    "comments": [
+      {
+        "rate": 5,
+        "comment": "basic courses",
+        "author": "John Lemon",
+        "date": "2012-10-16T17:57:28.556094Z"
+      },
+      {
+        "rate": 4,
+        "comment": "perfect start for computer science!",
+        "author": "Paul McVites",
+        "date": "2014-09-05T17:57:28.556094Z"
+      },
+      {
+        "rate": 3,
+        "comment": "must take it",
+        "author": "Michael Jaikishan",
+        "date": "2015-02-13T17:57:28.556094Z"
+      },
+      {
+        "rate": 4,
+        "comment": "Ultimate, Reaching for the stars!",
+        "author": "Ringo Starry",
+        "date": "2013-12-02T17:57:28.556094Z"
+      },
+      {
+        "rate": 2,
+        "comment": "necessary for student in cs major",
+        "author": "25 Cent",
+        "date": "2011-12-02T17:57:28.556094Z"
+      }
+    ]
+  }
