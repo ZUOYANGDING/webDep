@@ -1,41 +1,87 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const bodyParse = require('body-parser');
-
+const Students = require("../models/students");
 const studentRouter = express.Router();
-
 studentRouter.use(bodyParse.json());
 
-studentRouter.route('/').all((_req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-}).get((_req, res, _next) => {
-    res.end("Povide information about all students!");
-}).post((req, res, _next) => {
-    res.end("Add student: " + req.body.name + " with description " + req.body.description);
-}).put((_req, res, _next) => {
+studentRouter.route('/').get((req, res, next) => {
+    Students.find({}).then((students) => {
+        res.statusCode = 200;
+        res.setHeader('Content-type', 'application/json');
+        res.json(students);
+    }, (err) => {
+        next(err);
+    }).catch((err) => {
+        next(err);
+    });
+}).post((req, res, next) => {
+    Students.create(req.body).then((student) => {
+        res.statusCode = 200;
+        res.setHeader('Content-type', 'application/json');
+        res.json(student);
+    }, (err) => {
+        next(err);
+    }).catch((err) => {
+        next(err);
+    });
+}).put((req, res, next) => {
     res.statusCode = 403;
     res.end("Update operation does not suppport at /students!");
-}).delete((_req, res, _next) => {
-    res.end("delete all students' informaiton!");
+}).delete((req, res, next) => {
+    Students.deleteMany({}).then((result) => {
+        res.statusCode = 200;
+        res.setHeader('Content-type', 'application/json');
+        res.json(result);
+    }, (err) => {
+        next(err);
+    }).catch((err) => {
+        next(err);
+    });
 });
 
-studentRouter.route('/:studentID').all((_req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-}).get((req, res, _next) => {
-    res.end("Provide informaitona about student: " + req.body.name + " with ID " + 
-    req.params.studentID + " with description: " + req.body.description);
+studentRouter.route('/:studentID').get((req, res, next) => {
+    Students.findById(req.params.studentID).then((student) => {
+        if (student != null) {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(student);
+        } else {
+            err = new Error('Student ' + req.params.studentID + " cannot be found!");
+            err.status = 404;
+            return next(err);
+        }
+    }, (err) => { 
+        next(err);
+    }).catch((err) => {
+        next(err);
+    });
 }).post((_req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /students/:studentID");
-}).put((req, res, _next) => {
-    res.write("Student: " + req.body.name + " with ID " + req.params.studentID + 
-    " will be updated to " + req.params.studentID + "\n");
-    res.end("Student: " + req.body.name + "'s ID has been updated");
-}).delete((req, res, _next) => {
-    res.end("Student: " + req.body.name + " with ID " + req.params.studentID + " has been deleted!");
+}).put((req, res, next) => {
+    Students.findByIdAndUpdate((req.params.studentID), {
+        $set: req.body
+    }, {
+        new: true
+    }).then((student) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'applicaiton/json');
+        res.json(student);
+    }, (err) => {
+        next(err);
+    }).catch((err) => {
+        next(err);
+    });
+}).delete((req, res, next) => {
+    Students.findByIdAndRemove(req.params.studentID).then((result) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'applicaiton/json');
+        res.json(result);
+    }, (err) => {
+        next(err);
+    }).catch((err) => {
+        next(err);
+    });
 });
-
 module.exports = studentRouter;
