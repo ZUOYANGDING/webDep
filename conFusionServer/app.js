@@ -36,32 +36,18 @@ app.use(session({
   store: new FileStore()
 }));
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 function auth(req, res, next) {
   console.log(req.session);
   if (!req.session.user){
-    var authHeader = req.headers.authorization;
-    if (!authHeader) {
-      err = new Error("Have not been authorized!");
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-    } else {
-      var auth = new Buffer.from(authHeader.split(" ")[1], "base64").toString().split(":");
-      var username = auth[0];
-      var password = auth[1];
-      if (username==="admin" && password==="password") {
-        // res.cookie("user", username, {signed: true});
-        req.session.user = username;
-        return next();
-      } else {
-        err = new Error("Have not been authorized!");
-        res.setHeader('WWW-Authenticate', 'Basic');
-        err.status = 401;
-        return next(err);
-      }
-    }
+    err = new Error("Have not been authorized!");
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+    return next(err);
   } else {
-    if (req.session.user === "admin") {
+    if (req.session.user === "authenticated") {
       console.log("req.session: ", req.session);
       return next();
     } else {
@@ -75,8 +61,8 @@ function auth(req, res, next) {
 
 app.use(auth);
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// app.use('/', indexRouter);
+// app.use('/users', usersRouter);
 app.use('/courses', courseRouter);
 app.use('/teachers', professorRouter);
 app.use('/students', studentRouter);
