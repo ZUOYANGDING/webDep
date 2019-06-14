@@ -19,19 +19,38 @@ var connect = mongoose.connect(url);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser('1234-5678-9098-7654-3210'));
+app.use(express.static(path.join(__dirname, 'public')));
+
 function auth(req, res, next) {
   console.log(req.headers);
-  var authHeader = req.headers.authorization;
-  if (!authHeader) {
-    err = new Error("Have not been authorized!");
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401;
-    return next(err);
+  if (!req.signedCookies.user){
+    var authHeader = req.headers.authorization;
+    if (!authHeader) {
+      err = new Error("Have not been authorized!");
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401;
+      return next(err);
+    } else {
+      var auth = new Buffer.from(authHeader.split(" ")[1], "base64").toString().split(":");
+      var username = auth[0];
+      var password = auth[1];
+      if (username==="admin" && password==="password") {
+        res.cookie("user", username, {signed: true});
+        return next();
+      } else {
+        err = new Error("Have not been authorized!");
+        res.setHeader('WWW-Authenticate', 'Basic');
+        err.status = 401;
+        return next(err);
+      }
+    }
   } else {
-    var auth = new Buffer.from(authHeader.split(" ")[1], "base64").toString().split(":");
-    var username = auth[0];
-    var password = auth[1];
-    if (username==="auth" && password==="password") {
+    if (req.signedCookies.user === "admin") {
       return next();
     } else {
       err = new Error("Have not been authorized!");
@@ -43,12 +62,6 @@ function auth(req, res, next) {
 }
 
 app.use(auth);
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
