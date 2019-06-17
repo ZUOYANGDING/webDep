@@ -6,12 +6,14 @@ var logger = require('morgan');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
+var passport = require('passport');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var courseRouter = require('./routes/courseRouter');
 var studentRouter = require('./routes/studentRouter');
 var professorRouter = require('./routes/professorRouter');
+var authenticate = require('./authentication');
 
 var app = express();
 var url = 'mongodb://localhost:27017/conFusion'
@@ -36,33 +38,46 @@ app.use(session({
   store: new FileStore()
 }));
 
+// apply passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+// for session
+// function auth(req, res, next) {
+//   console.log(req.session);
+//   if (!req.session.user){
+//     err = new Error("Have not been authorized!");
+//     res.setHeader('WWW-Authenticate', 'Basic');
+//     err.status = 401;
+//     return next(err);
+//   } else {
+//     if (req.session.user === "authenticated") {
+//       console.log("req.session: ", req.session);
+//       return next();
+//     } else {
+//       err = new Error("Have not been authorized!");
+//       res.setHeader('WWW-Authenticate', 'Basic');
+//       err.status = 401;
+//       return next(err);
+//     }
+//   }
+// }
+
 function auth(req, res, next) {
-  console.log(req.session);
-  if (!req.session.user){
+  if (!req.user) {
     err = new Error("Have not been authorized!");
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401;
-    return next(err);
+    err.status = 403;
+    next(err);
   } else {
-    if (req.session.user === "authenticated") {
-      console.log("req.session: ", req.session);
-      return next();
-    } else {
-      err = new Error("Have not been authorized!");
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-    }
+    next();
   }
 }
 
 app.use(auth);
 
-// app.use('/', indexRouter);
-// app.use('/users', usersRouter);
 app.use('/courses', courseRouter);
 app.use('/teachers', professorRouter);
 app.use('/students', studentRouter);
