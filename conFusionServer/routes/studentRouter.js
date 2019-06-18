@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParse = require('body-parser');
 const Students = require("../models/students");
+var authenticate = require('../authentication');
 const studentRouter = express.Router();
 studentRouter.use(bodyParse.json());
 
@@ -15,7 +16,7 @@ studentRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, next) => {
+}).post(authenticate.verifyUser, (req, res, next) => {
     Students.create(req.body).then((student) => {
         res.statusCode = 200;
         res.setHeader('Content-type', 'application/json');
@@ -25,10 +26,10 @@ studentRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).put((req, res, next) => {
+}).put(authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end("Update operation does not suppport at /students!");
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Students.deleteMany({}).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-type', 'application/json');
@@ -56,10 +57,10 @@ studentRouter.route('/:studentID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((_req, res, _next) => {
+}).post(authenticate.verifyUser, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /students/:studentID");
-}).put((req, res, next) => {
+}).put(authenticate.verifyUser, (req, res, next) => {
     Students.findByIdAndUpdate((req.params.studentID), {
         $set: req.body
     }, {
@@ -73,7 +74,7 @@ studentRouter.route('/:studentID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Students.findByIdAndRemove(req.params.studentID).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'applicaiton/json');

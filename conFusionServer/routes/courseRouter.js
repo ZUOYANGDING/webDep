@@ -2,13 +2,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Courses = require('../models/courses');
+var authenticate = require('../authentication');
 
 const courseRouter = express.Router();
 courseRouter.use(bodyParser.json());
 
 //for all courses
 courseRouter.route('/').get((req, res, next) => {
-    Courses.find({}).then((courses) => {
+    Courses.find({}).populate('comments.author').then((courses) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(courses);
@@ -17,7 +18,7 @@ courseRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, next) => {
+}).post(authenticate.verifyUser, (req, res, next) => {
     Courses.create(req.body).then((course) => {
         console.log("Course created");
         res.statusCode = 200;
@@ -28,10 +29,10 @@ courseRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).put((_req, res, _next) => {
+}).put(authenticate.verifyUser, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Update operation does not support at /courses!");
-}).delete((_req, res, next) => {
+}).delete(authenticate.verifyUser, (_req, res, next) => {
     Courses.deleteMany({}).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -44,7 +45,7 @@ courseRouter.route('/').get((req, res, next) => {
 });
 
 courseRouter.route('/:courseID').get((req, res, next) => {
-    Courses.findById(req.params.courseID).then((course) => {
+    Courses.findById(req.params.courseID).populate('comments.author').then((course) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(course);
@@ -53,10 +54,10 @@ courseRouter.route('/:courseID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, _next) => {
+}).post(authenticate.verifyUser, (req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not suppport at /course/" + req.params.courseID);
-}).put((req, res, next) => {
+}).put(authenticate.verifyUser, (req, res, next) => {
     Courses.findByIdAndUpdate((req.params.courseID), {
         $set: req.body
     }, {
@@ -70,7 +71,7 @@ courseRouter.route('/:courseID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     })
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Courses.findByIdAndRemove((req.params.courseID)).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -85,7 +86,7 @@ courseRouter.route('/:courseID').get((req, res, next) => {
 
 //for comments
 courseRouter.route('/:courseID/comments').get((req, res, next) => {
-    Courses.findById(req.params.courseID).then((course) => {
+    Courses.findById(req.params.courseID).populate('comments.author').then((course) => {
         if (course != null) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
@@ -100,15 +101,24 @@ courseRouter.route('/:courseID/comments').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, next) => {
+}).post(authenticate.verifyUser, (req, res, next) => {
     Courses.findByIdAndUpdate(req.params.courseID).then((course) => {
         if (course != null) {
+            req.body.author = req.user;
             course.comments.push(req.body);
             course.save().then((course) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(course);
+                Courses.findById(course._id).populate('comments.author').then((course) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(course);
+                }, (err) => {
+                    next(err);
+                }).catch((err) => {
+                    next(err);
+                });
             }, (err) => {
+                next(err);
+            }).catch((err) => {
                 next(err);
             });
         } else {
@@ -121,16 +131,16 @@ courseRouter.route('/:courseID/comments').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).put((_req, res, _next) => {
+}).put(authenticate.verifyUser, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Update operation does not support at /:courseID/comments!");
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Courses.findByIdAndUpdate(req.params.courseID).then((course) => {
         if (course != null) {
             for (var i=course.comments.length-1; i>=0; i--) {
                 course.comments.id(course.comments[i]._id).remove();
             }
-            course.save().then((course) => {
+            course.save().then((course) => {     
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
                 res.json(course);
@@ -150,7 +160,7 @@ courseRouter.route('/:courseID/comments').get((req, res, next) => {
 });
 
 courseRouter.route('/:courseID/comments/:commentID').get((req, res, next) => {
-    Courses.findById(req.params.courseID).then((course) => {
+    Courses.findById(req.params.courseID).populate('comments.author').then((course) => {
         if (course != null && course.comments.id(req.params.commentID) != null) {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
@@ -169,11 +179,11 @@ courseRouter.route('/:courseID/comments/:commentID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, _next) => {
+}).post(authenticate.verifyUser, (req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not suppport at /course/" + req.params.courseID + 
     "/comments/" + req.params.commentID);
-}).put((req, res, next) => {
+}).put(authenticate.verifyUser, (req, res, next) => {
     Courses.findByIdAndUpdate(req.params.courseID).then((course) => {
         if (course != null && course.comments.id(req.params.commentID) != null) {
             if (req.body.rate) {
@@ -188,10 +198,18 @@ courseRouter.route('/:courseID/comments/:commentID').get((req, res, next) => {
                 return next(err);
             }
             course.save().then((course) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(course);
+                Courses.findById(course._id).populate('comments.author').then((course) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(course);
+                }, (err) => {
+                    next(err);
+                }).catch((err) => {
+                    next(err);
+                });
             }, (err) => {
+                next(err);
+            }).catch((err) => {
                 next(err);
             })
         } else if(course == null) {
@@ -208,15 +226,23 @@ courseRouter.route('/:courseID/comments/:commentID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Courses.findById(req.params.courseID).then((course) => {
         if (course != null && course.comments.id(req.params.commentID) != null) {
             course.comments.id(req.params.commentID).remove();
             course.save().then((course) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(course);
+                Courses.findById(course._id).populate('comment.author').then((course) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(course);
+                }, (err) => {
+                    next(err);
+                }).catch((err) => {
+                    next(err);
+                });
             }, (err) => {
+                next(err);
+            }).catch((err) => {
                 next(err);
             })
         } else if(course == null) {

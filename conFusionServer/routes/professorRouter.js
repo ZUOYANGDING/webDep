@@ -2,6 +2,7 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
 const Professors = require('../models/professors');
+var authenticate = require('../authentication');
 
 const professorRouter = express.Router();
 professorRouter.use(bodyParser.json());
@@ -17,7 +18,7 @@ professorRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, next) => {
+}).post(authenticate.verifyUser, (req, res, next) => {
     Professors.create(req.body).then((professor) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -27,10 +28,10 @@ professorRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     })
-}).put((_req, res, _next) => {
+}).put(authenticate.verifyUser, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Update operation does not support at /teachers!");
-}).delete((_req, res, next) => {
+}).delete(authenticate.verifyUser, (_req, res, next) => {
     Professors.deleteMany({}).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -52,10 +53,10 @@ professorRouter.route('/:teacherID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     })
-}).post((_req, res, _next) => {
+}).post(authenticate.verifyUser, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /teachers/teacherID");
-}).put((req, res, next) => {
+}).put(authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate((req.params.teacherID), {
         $set: req.body
     }, {
@@ -69,7 +70,7 @@ professorRouter.route('/:teacherID').get((req, res, next) => {
     }).catch((err) =>{
         next(err);
     });
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndRemove(req.params.teacherID).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -99,7 +100,7 @@ professorRouter.route('/:teacherID/comments').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post((req, res, next) => {
+}).post(authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null) {
             professor.comments.push(req.body);
@@ -120,10 +121,10 @@ professorRouter.route('/:teacherID/comments').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).put((req, res, _next) => {
+}).put(authenticate.verifyUser, (req, res, _next) => {
     res.statusCode = 403;
     res.end("Update operation does not support at /" + req.params.teacherID + "/comments");
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null) {
             for (var i=professor.comments.length-1; i>=0; i--) {
@@ -168,10 +169,10 @@ professorRouter.route('/:teacherID/comments/:commentID').get((req, res, next) =>
     }).catch((err) => {
         next(err);
     })
-}).post((req, res, _next) => {
+}).post(authenticate.verifyUser, (req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /" + req.params.teacherID + "/comments/" + req.params.commentID);
-}).put((req, res, next) => {
+}).put(authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null && professor.comments.id(req.params.commentID) != null) {
             if (req.body.rate) {
@@ -206,7 +207,7 @@ professorRouter.route('/:teacherID/comments/:commentID').get((req, res, next) =>
     }).catch((err) =>{
         next(err);
     });
-}).delete((req, res, next) => {
+}).delete(authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null && professor.comments.id(req.params.commentID) != null) {
             professor.comments.id(req.params.commentID).remove();

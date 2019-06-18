@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var passport = require('passport');
+var config = require('./config');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -16,7 +17,7 @@ var professorRouter = require('./routes/professorRouter');
 var authenticate = require('./authentication');
 
 var app = express();
-var url = 'mongodb://localhost:27017/conFusion'
+var url = config.mongoUrl;
 var connect = mongoose.connect(url);
 
 // view engine setup
@@ -30,17 +31,17 @@ app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser('1234-5678-9098-7654-3210'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(session({
-  name: 'session-id',
-  secret: '1234-5678-9098-7654-3210',
-  saveUninitialized: false,
-  resave: false,
-  store: new FileStore()
-}));
+// app.use(session({
+//   name: 'session-id',
+//   secret: '1234-5678-9098-7654-3210',
+//   saveUninitialized: false,
+//   resave: false,
+//   store: new FileStore()
+// }));
 
 // apply passport
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -66,17 +67,18 @@ app.use('/users', usersRouter);
 //   }
 // }
 
-function auth(req, res, next) {
-  if (!req.user) {
-    err = new Error("Have not been authorized!");
-    err.status = 403;
-    next(err);
-  } else {
-    next();
-  }
-}
+// for passport
+// function auth(req, res, next) {
+//   if (!req.user) {
+//     err = new Error("Have not been authorized!");
+//     err.status = 403;
+//     next(err);
+//   } else {
+//     next();
+//   }
+// }
 
-app.use(auth);
+// app.use(auth);
 
 app.use('/courses', courseRouter);
 app.use('/teachers', professorRouter);
