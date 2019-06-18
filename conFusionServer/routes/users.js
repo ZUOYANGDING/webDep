@@ -8,8 +8,16 @@ var authenticate = require('../authentication');
 userRouter.use(bodyParser.json());
 
 /* GET users listing. */
-userRouter.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+  User.find({}).then((users) => {
+    res.statusCode = 200;
+    res.setHeader('Context-Type', 'application/json');
+    res.json(users);
+  }, (err) => {
+    next(err);
+  }).catch((err) => {
+    next(err);
+  })
 });
 
 // for session
