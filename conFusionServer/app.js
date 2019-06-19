@@ -17,6 +17,18 @@ var professorRouter = require('./routes/professorRouter');
 var authenticate = require('./authentication');
 
 var app = express();
+
+/**
+ * redirect all request to secured server
+ */
+app.all('*', (req, res, next) => {
+  if (req.secure) {
+    next();
+  } else {
+    res.redirect(307, "https://" + req.hostname + ":" + app.get('secPort') + req.url);
+  }
+});
+
 var url = config.mongoUrl;
 var connect = mongoose.connect(url);
 
