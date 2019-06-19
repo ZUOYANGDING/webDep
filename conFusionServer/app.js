@@ -9,13 +9,14 @@ var FileStore = require('session-file-store')(session);
 var passport = require('passport');
 var config = require('./config');
 
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var courseRouter = require('./routes/courseRouter');
 var studentRouter = require('./routes/studentRouter');
 var professorRouter = require('./routes/professorRouter');
 var authenticate = require('./authentication');
-
+var uploadRouter = require('./routes/uploadRouter');
 var app = express();
 
 /**
@@ -95,6 +96,7 @@ app.use('/users', usersRouter);
 app.use('/courses', courseRouter);
 app.use('/teachers', professorRouter);
 app.use('/students', studentRouter);
+app.use('/imageUpload', uploadRouter);
 
 connect.then(() => {
   console.log("connected to mongo server");
