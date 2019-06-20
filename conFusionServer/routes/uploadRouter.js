@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var authenticate = require('../authentication');
 var multer = require('multer');
+var cors = require('./cors');
 
 var uploadRouter = express.Router();
 uploadRouter.use(bodyParser.json());
@@ -26,17 +27,19 @@ var imageFileFilter = (req, file, callback) => {
 
 var upload = multer({storage: storage, fileFilter: imageFileFilter});
 
-uploadRouter.route('/').get(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+uploadRouter.route('/').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end("GET request is not support in /imageUpload!");
-}).post(authenticate.verifyUser, authenticate.verifyAdmin, upload.single('imageFile'), (req, res, next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, upload.single('imageFile'), (req, res, next) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.json(req.file);
-}).put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end("PUT request is not support in /imageUpload!");
-}).delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end("DELETE request is not support in /imageUpload!");
 });

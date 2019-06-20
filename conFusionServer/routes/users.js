@@ -4,11 +4,14 @@ var User = require('../models/user');
 var userRouter = express.Router();
 var passport = require('passport');
 var authenticate = require('../authentication');
+var cors = require('./cors');
 
 userRouter.use(bodyParser.json());
 
 /* GET users listing. */
-userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+userRouter.route('/').options(cors.corsWithOption, (req, res) => {
+  res.sendStatus(200);
+}).get(cors.cors, authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
   User.find({}).then((users) => {
     res.statusCode = 200;
     res.setHeader('Context-Type', 'application/json');
@@ -47,7 +50,9 @@ userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(
 // });
 
 // apply passport
-userRouter.post('/signup', (req, res, next) => {
+userRouter.route('/signup').options(cors.corsWithOption, (res, req) => {
+  res.sendStatus(200);
+}).post(cors.corsWithOption, (req, res, next) => {
   User.register(new User({username: req.body.username}), req.body.password, (err, user) => {
     if (err) {
       res.statusCode = 500;
@@ -119,7 +124,9 @@ userRouter.post('/signup', (req, res, next) => {
 
 
 // apply passport
-userRouter.post('/login', passport.authenticate('local'), (req, res, next) => {
+userRouter.route('/login').options(cors.corsWithOption, (res, req) => {
+  res.sendStatus(200);
+}).post(cors.corsWithOption, passport.authenticate('local'), (req, res, next) => {
   // apply token
   var token = authenticate.getToken({_id: req.user._id});
   res.statusCode = 200;

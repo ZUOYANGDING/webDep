@@ -3,10 +3,13 @@ const mongoose = require('mongoose');
 const bodyParse = require('body-parser');
 const Students = require("../models/students");
 var authenticate = require('../authentication');
+var cors = require('./cors');
 const studentRouter = express.Router();
 studentRouter.use(bodyParse.json());
 
-studentRouter.route('/').get((req, res, next) => {
+studentRouter.route('/').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, (req, res, next) => {
     Students.find({}).then((students) => {
         res.statusCode = 200;
         res.setHeader('Content-type', 'application/json');
@@ -16,7 +19,7 @@ studentRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Students.create(req.body).then((student) => {
         res.statusCode = 200;
         res.setHeader('Content-type', 'application/json');
@@ -26,10 +29,10 @@ studentRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end("Update operation does not suppport at /students!");
-}).delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Students.deleteMany({}).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-type', 'application/json');
@@ -41,7 +44,9 @@ studentRouter.route('/').get((req, res, next) => {
     });
 });
 
-studentRouter.route('/:studentID').get((req, res, next) => {
+studentRouter.route('/:studentID').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, (req, res, next) => {
     Students.findById(req.params.studentID).then((student) => {
         if (student != null) {
             res.statusCode = 200;
@@ -57,10 +62,10 @@ studentRouter.route('/:studentID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post(authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, _next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /students/:studentID");
-}).put(authenticate.verifyUser, (req, res, next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Students.findByIdAndUpdate((req.params.studentID), {
         $set: req.body
     }, {
@@ -74,7 +79,7 @@ studentRouter.route('/:studentID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Students.findByIdAndRemove(req.params.studentID).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'applicaiton/json');

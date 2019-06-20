@@ -3,12 +3,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Professors = require('../models/professors');
 var authenticate = require('../authentication');
+var cors = require('./cors');
 
 const professorRouter = express.Router();
 professorRouter.use(bodyParser.json());
 
 //for professors
-professorRouter.route('/').get((req, res, next) => {
+professorRouter.route('/').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, (req, res, next) => {
     Professors.find({}).populate('comments.author').then((professors) => {
        res.statusCode = 200;
        res.setHeader('Content-Type', 'application/json');
@@ -18,7 +21,7 @@ professorRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Professors.create(req.body).then((professor) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -28,10 +31,10 @@ professorRouter.route('/').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     })
-}).put(authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, _next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Update operation does not support at /teachers!");
-}).delete(authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, next) => {
     Professors.deleteMany({}).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -43,7 +46,9 @@ professorRouter.route('/').get((req, res, next) => {
     })
 });
 
-professorRouter.route('/:teacherID').get((req, res, next) => {
+professorRouter.route('/:teacherID').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, (req, res, next) => {
     Professors.findById(req.params.teacherID).populate('comments.author').then((professor) =>{
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -53,10 +58,10 @@ professorRouter.route('/:teacherID').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     })
-}).post(authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, _next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (_req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /teachers/teacherID");
-}).put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Professors.findByIdAndUpdate((req.params.teacherID), {
         $set: req.body
     }, {
@@ -70,7 +75,7 @@ professorRouter.route('/:teacherID').get((req, res, next) => {
     }).catch((err) =>{
         next(err);
     });
-}).delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Professors.findByIdAndRemove(req.params.teacherID).then((result) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -84,7 +89,9 @@ professorRouter.route('/:teacherID').get((req, res, next) => {
 
 
 //for professors' comments
-professorRouter.route('/:teacherID/comments').get((req, res, next) => {
+professorRouter.route('/:teacherID/comments').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, (req, res, next) => {
     Professors.findById(req.params.teacherID).populate('comments.author').then((professor) => {
         if (professor != null) {
             res.statusCode = 200;
@@ -100,7 +107,7 @@ professorRouter.route('/:teacherID/comments').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).post(authenticate.verifyUser, (req, res, next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null) {
             req.body.author = req.user;
@@ -130,10 +137,10 @@ professorRouter.route('/:teacherID/comments').get((req, res, next) => {
     }).catch((err) => {
         next(err);
     });
-}).put(authenticate.verifyUser, (req, res, _next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, (req, res, _next) => {
     res.statusCode = 403;
     res.end("Update operation does not support at /" + req.params.teacherID + "/comments");
-}).delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null) {
             for (var i=professor.comments.length-1; i>=0; i--) {
@@ -158,7 +165,9 @@ professorRouter.route('/:teacherID/comments').get((req, res, next) => {
     })
 });
 
-professorRouter.route('/:teacherID/comments/:commentID').get((req, res, next) => {
+professorRouter.route('/:teacherID/comments/:commentID').options(cors.corsWithOption, (req, res) => {
+    res.sendStatus(200);
+}).get(cors.cors, (req, res, next) => {
     Professors.findById(req.params.teacherID).populate('comments.author').then((professor) =>{
         if (professor != null && professor.comments.id(req.params.commentID) != null) {
             res.statusCode = 200;
@@ -178,10 +187,10 @@ professorRouter.route('/:teacherID/comments/:commentID').get((req, res, next) =>
     }).catch((err) => {
         next(err);
     })
-}).post(authenticate.verifyUser, (req, res, _next) => {
+}).post(cors.corsWithOption, authenticate.verifyUser, (req, res, _next) => {
     res.statusCode = 403;
     res.end("Add operation does not support at /" + req.params.teacherID + "/comments/" + req.params.commentID);
-}).put(authenticate.verifyUser, (req, res, next) => {
+}).put(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null && professor.comments.id(req.params.commentID) != null) {
             if ((professor.comments.id(req.params.commentID).author).equals(req.user._id)) {
@@ -230,7 +239,7 @@ professorRouter.route('/:teacherID/comments/:commentID').get((req, res, next) =>
     }).catch((err) =>{
         next(err);
     });
-}).delete(authenticate.verifyUser, (req, res, next) => {
+}).delete(cors.corsWithOption, authenticate.verifyUser, (req, res, next) => {
     Professors.findByIdAndUpdate(req.params.teacherID).then((professor) => {
         if (professor != null && professor.comments.id(req.params.commentID) != null) {
             if ((professor.comments.id(req.params.commentID).author).equals(req.user._id)) {
