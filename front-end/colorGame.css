@@ -1,0 +1,74 @@
+body {
+  background-color: #232323;
+  margin: 0;
+  font-family: "Avenir", "Montserrat"  
+}
+
+.square {
+    width: 30%;
+    background: white;
+    padding-bottom: 30%;
+    float: left;
+    margin: 1.66%;
+    border-radius: 15%;
+    transition: background 0.5s;
+}
+
+#container {
+    margin: 0 auto;
+    max-width: 700px;
+}
+
+h1 {
+    text-align: center;
+    font-weight: normal;
+    background-color: steelblue;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+    line-height: 1.1;
+    padding: 20px 0;
+}
+
+/* #answer{
+    text-align: center;
+    color: white;
+} */
+
+#buttons {
+    text-align: center;
+    height: 30px;
+    background: white;
+    color: black;
+}
+
+.button{
+    border: none;
+    background: none;
+    text-transform: uppercase;
+    height: 100%;
+    font-weight: 700;
+    color: steelblue;
+    letter-spacing: 1px;
+    font-size: inherit;
+    transition: all 0.3s;
+}
+
+.modselect {
+    color: white;
+    background: steelblue;
+}
+
+#colorSelect{
+    font-size: 200%;
+}
+
+#answer {
+    display: inline-block;
+    width: 20%;
+}
+
+.button:hover{
+    color: white;
+    background: steelblue;
+}
