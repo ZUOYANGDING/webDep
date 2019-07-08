@@ -1,5 +1,8 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var Campgrounds = require('./models/campground');
+var seedDB = require('./seeds');
 
 var app = express();
 var urlencodedParser = bodyParser.urlencoded({ extended: true });
@@ -8,31 +11,48 @@ app.use(urlencodedParser);
 app.set('port', (process.env.PORT || 3000));
 app.set('view engine', 'ejs');
 
-var campgrounds = [
-    {name: "Liza Bovec", image: "https://www.campsitephotos.com/photo/camp/53332/feature_Forks-f3.jpg"},
-    {name: "paperbark", image: "https://www.campsitephotos.com/photo/camp/53059/feature_Sage_Flat-f3.jpg"},
-    {name: "Snowberry", image: "https://www.campsitephotos.com/photo/camp/108155/feature_Snowberry-f4.jpg"}
-];
+var connect = mongoose.connect("mongodb://localhost:27017/yelpcamp");
+connect.then(() => {
+    console.log("connect to local mongoDB");
+}).catch((err) => {
+    console.log(err);
+});
+
+seedDB();
 
 app.get('/', function(req, res, next) {
     res.render("landing");
-});
+}); 
 
 app.get('/campgrounds', function(req, res, next) {
-    res.render("campgrounds", {campgrounds:campgrounds});
+    Campgrounds.find({}).then((campgrounds) => {
+        res.render("index", {campgrounds:campgrounds});
+    }).catch((err) => {
+        console.log(err);
+    });
 });
 
 app.post('/campgrounds', function(req, res, next) {
-    var name = req.body.name;
-    var image = req.body.image;
-    var campground = {name: name, image: image};
-    campgrounds.push(campground);
-    res.redirect('/campgrounds');
+    Campgrounds.create(req.body).then((campground) => {
+        res.statusCode = 200;
+        res.redirect('/campgrounds');
+    }).catch((err) => {
+        console.log(err);
+    });
 });
 
 app.get('/campgrounds/new', function(req, res, next) {
     res.render("new");
 });
+
+app.get('/campgrounds/:id', function(req, res, next) {
+    Campgrounds.findById(req.params.id).then((campground) => {
+        res.render("show", {campground: campground});
+    }).catch((err) => {
+        console.log(err);
+    });
+});
+
 
 app.listen(app.get('port'), function() {
     console.log("get connection to server!");
