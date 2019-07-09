@@ -9,6 +9,9 @@ var passportLocal   =   require('passport-local');
 var User            =   require('./models/user');
 var session         =   require('express-session');
 
+var campgroundRouter    =   require('./routers/campgroundRouter');
+var commentRouter       =   require('./routers/commentRouter');
+var userRouter          =   require('./routers/userRouter');
 
 
 var app = express();
@@ -44,124 +47,18 @@ app.use(function(req, res, next) {
     next();
 });
 
+
 // init DB
 seedDB();
 
-// routers for campgrounds
+
+// set routers
 app.get('/', function(req, res, next) {
     res.render("landing");
-}); 
-
-app.get('/campgrounds', function(req, res, next) {
-    Campgrounds.find({}).then((campgrounds) => {
-        res.render("campgrounds/index", {campgrounds:campgrounds});
-    }).catch((err) => {
-        console.log(err);
-    });
 });
-
-app.post('/campgrounds', isLogin, function(req, res, next) {
-    Campgrounds.create(req.body).then((campground) => {
-        res.statusCode = 200;
-        res.redirect('/campgrounds');
-    }).catch((err) => {
-        console.log(err);
-    });
-});
-
-app.get('/campgrounds/new', isLogin, function(req, res, next) {
-    res.render("campgrounds/new");
-});
-
-app.get('/campgrounds/:id', function(req, res, next) {
-    Campgrounds.findById(req.params.id).populate("comments").then(function(campground) {
-        res.render("campgrounds/show", {campground: campground});
-    }).catch((err) => {
-        console.log(err);
-    });
-});
-
-// routers for comments
-app.get('/campgrounds/:id/comments/new', isLogin, function(req, res, next) {
-    Campgrounds.findById(req.params.id).then((campground) => {
-        if (campground) {
-            res.render("comments/new", {campground: campground});
-        }
-    }).catch((err) => {
-        console.log(err);
-    })
-});
-
-app.post('/campgrounds/:id/comments', isLogin, function(req, res, next) {
-    Comment.create(req.body.comment).then((comment) => {
-        Campgrounds.findById(req.params.id).then((campground) => {
-            if (campground) {
-                campground.comments.push(comment);
-                campground.save().then((campground) => {
-                    console.log("add comment success");
-                }).catch((err) => {
-                    console.log(err);
-                });
-            }
-        }).catch((err) => {
-            console.log(err);
-        });
-        res.statusCode = 200;
-        var redirectUrl = "/campgrounds/" + req.params.id;
-        res.redirect(redirectUrl);
-    }).catch((err) => {
-        console.log(err);
-    })
-});
-
-
-// register router
-app.get('/register', function(req, res, next) {
-    res.render('register');
-});
-
-app.post('/register', function(req, res, next) {
-    var newUser = new User({
-        username: req.body.username
-    });
-    User.register(newUser, req.body.password, function(err, user) {
-        if (err) {
-            console.log(err);
-            return res.render('register');
-        } else {
-            passport.authenticate('local')(req, res, ()=>{
-                res.redirect('/campgrounds');
-            });
-        }
-    });
-});
-
-// login router
-app.get('/login', function(req, res, next) {
-    res.render('login');
-});
-
-app.post('/login', passport.authenticate('local', {
-    successRedirect: '/campgrounds',
-    failureRedirect: '/login'
-    }), function(req, res, next) { 
-});
-
-//logout router
-app.get('/logout', function(req, res, next) {
-    req.logout();
-    res.redirect('/');
-});
-
-
-//funciton for auth check
-function isLogin(req, res, next){
-    if (req.isAuthenticated()) {
-        next();
-    } else {
-        res.redirect('/login');
-    }
-}
+app.use('/campgrounds', campgroundRouter);
+app.use('/campgrounds/:id/comments', commentRouter);
+app.use('/', userRouter);
 
 
 app.listen(app.get('port'), function() {

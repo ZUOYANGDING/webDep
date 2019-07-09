@@ -14,6 +14,15 @@ var campgroundSchema = new Schema({
         type: String,
         required: true
     },
+    author :{
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "users"
+        },
+        username: {
+            type: String
+        }
+    },
     comments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'comments'

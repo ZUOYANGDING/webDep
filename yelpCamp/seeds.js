@@ -25,27 +25,27 @@ function seedDB() {
         console.log("removed all campgrounds");
         Comments.deleteMany({}).then(function() {
             console.log("removed all comments");
-            seedData.forEach(function(seed) {
-                Campgrounds.create(seed).then((campground) => {
-                    var campgroundCreate = "Campground with id: " + campground._id + " created";
-                    console.log(campgroundCreate);
-                    Comments.create({
-                        author: "FADE",
-                        text: "it is a good place"
-                    }).then((comment) => {
-                        campground.comments.push(comment);
-                        campground.save().then((campground) => {
-                            console.log("comment add success");
-                        }).catch((err) => {
-                            console.log("comment add failed")
-                        });
-                    }).catch((err) => {
-                        console.log("comment create failed")
-                    })
-                }).catch((err) => {
-                    console.log("campground create failed");
-                })
-            })
+            // seedData.forEach(function(seed) {
+            //     Campgrounds.create(seed).then((campground) => {
+            //         var campgroundCreate = "Campground with id: " + campground._id + " created";
+            //         console.log(campgroundCreate);
+            //         Comments.create({
+            //             author: "FADE",
+            //             text: "it is a good place"
+            //         }).then((comment) => {
+            //             campground.comments.push(comment);
+            //             campground.save().then((campground) => {
+            //                 console.log("comment add success");
+            //             }).catch((err) => {
+            //                 console.log("comment add failed")
+            //             });
+            //         }).catch((err) => {
+            //             console.log("comment create failed")
+            //         })
+            //     }).catch((err) => {
+            //         console.log("campground create failed");
+            //     })
+            // })
         }).catch((err) => {
             console.log(err);
         });       
