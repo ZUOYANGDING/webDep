@@ -21,9 +21,9 @@ var seedData = [
 ]
 
 function seedDB() {
-    Campgrounds.remove({}).then(function() {
+    Campgrounds.deleteMany({}).then(function() {
         console.log("removed all campgrounds");
-        Comments.remove({}).then(function() {
+        Comments.deleteMany({}).then(function() {
             console.log("removed all comments");
             seedData.forEach(function(seed) {
                 Campgrounds.create(seed).then((campground) => {
