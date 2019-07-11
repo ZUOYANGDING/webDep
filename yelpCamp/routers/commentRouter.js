@@ -3,9 +3,10 @@ var commentRouter    =   express.Router({mergeParams: true});
 var Campgrounds         =   require('../models/campground');
 var Comment             =   require('../models/comment');
 var User                =   require('../models/user');
+var midware             =   require('../midware/index');
 
 // routers for comments
-commentRouter.get('/new', isLogin, function(req, res, next) {
+commentRouter.get('/new', midware.isLogin, function(req, res, next) {
     Campgrounds.findById(req.params.id).then((campground) => {
         if (campground) {
             res.render("comments/new", {campground: campground});
@@ -15,7 +16,7 @@ commentRouter.get('/new', isLogin, function(req, res, next) {
     })
 });
 
-commentRouter.post('/', isLogin, function(req, res, next) {
+commentRouter.post('/', midware.isLogin, function(req, res, next) {
     Comment.create(req.body.comment).then((comment) => {
         Campgrounds.findById(req.params.id).then((campground) => {
             if (campground) {
@@ -44,7 +45,7 @@ commentRouter.post('/', isLogin, function(req, res, next) {
 });
 
 // router for edit comment
-commentRouter.get('/:commentId/edit', isThePoster,function(req, res, next) {
+commentRouter.get('/:commentId/edit', midware.isCommentPoster,function(req, res, next) {
     Comment.findById(req.params.commentId).then((comment) => {
         res.render('comments/edit', {comment:  comment, campgroundId: req.params.id});
     }).catch((err) => {
@@ -53,7 +54,7 @@ commentRouter.get('/:commentId/edit', isThePoster,function(req, res, next) {
     })
 });
 
-commentRouter.put('/:commentId', isThePoster,function(req, res, next) {
+commentRouter.put('/:commentId', midware.isCommentPoster,function(req, res, next) {
     Comment.findByIdAndUpdate(req.params.commentId, req.body.comment).then((comment) => {
         console.log("comment update successful");
         res.redirect('/campgrounds/' + req.params.id);
@@ -64,7 +65,7 @@ commentRouter.put('/:commentId', isThePoster,function(req, res, next) {
 });
 
 // router for delete comment
-commentRouter.delete('/:commentId', isThePoster,function(req, res, next) {
+commentRouter.delete('/:commentId', midware.isCommentPoster,function(req, res, next) {
     Campgrounds.findById(req.params.id).then(function(campground) {
         var index = 0;
         var commentid = String(req.params.commentId);
@@ -95,28 +96,28 @@ commentRouter.delete('/:commentId', isThePoster,function(req, res, next) {
     // })
 });
 
-//funciton for login check
-function isLogin(req, res, next){
-    if (req.isAuthenticated()) {
-        next();
-    } else {
-        res.redirect('/login');
-    }
-}
+// //funciton for login check
+// function isLogin(req, res, next){
+//     if (req.isAuthenticated()) {
+//         next();
+//     } else {
+//         res.redirect('/login');
+//     }
+// }
 
-// function for auth check
-function isThePoster(req, res, next) {
-    if (req.isAuthenticated()) {
-        Comment.findById(req.params.commentId).then((comment) => {
-            if (comment.author.id.equals(req.user._id)){
-                next();
-            } else {
-                res.redirect("back");
-            }
-        })
-    } else {
-        res.redirect("back");
-    }
-}
+// // function for auth check
+// function midware.isCommentPoster(req, res, next) {
+//     if (req.isAuthenticated()) {
+//         Comment.findById(req.params.commentId).then((comment) => {
+//             if (comment.author.id.equals(req.user._id)){
+//                 next();
+//             } else {
+//                 res.redirect("back");
+//             }
+//         })
+//     } else {
+//         res.redirect("back");
+//     }
+// }
 
 module.exports = commentRouter;

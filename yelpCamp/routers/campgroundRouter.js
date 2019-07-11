@@ -3,6 +3,7 @@ var campgroundRouter    =   express.Router();
 var Campgrounds         =   require('../models/campground');
 var Comment             =   require('../models/comment');
 var User                =   require('../models/user');
+var midware             =   require('../midware/index');
 
 campgroundRouter.get('/', function(req, res, next) {
     Campgrounds.find({}).then((campgrounds) => {
@@ -12,7 +13,7 @@ campgroundRouter.get('/', function(req, res, next) {
     });
 });
 
-campgroundRouter.post('/', isLogin, function(req, res, next) {
+campgroundRouter.post('/', midware.isLogin, function(req, res, next) {
     Campgrounds.create(req.body).then((campground) => {
         campground.author.id = req.user._id;
         campground.author.username = req.user.username;
@@ -28,7 +29,7 @@ campgroundRouter.post('/', isLogin, function(req, res, next) {
     });
 });
 
-campgroundRouter.get('/new', isLogin, function(req, res, next) {
+campgroundRouter.get('/new', midware.isLogin, function(req, res, next) {
     res.render("campgrounds/new");
 });
 
@@ -42,7 +43,7 @@ campgroundRouter.get('/:id', function(req, res, next) {
 
 
 // router for edit page
-campgroundRouter.get('/:id/edit', isThePoster, function(req, res, next) {
+campgroundRouter.get('/:id/edit', midware.isCampGroundPoster, function(req, res, next) {
     Campgrounds.findById(req.params.id).then(function(campground) {
         res.render("campgrounds/edit", {campground: campground});
     }).catch((err) => {
@@ -51,9 +52,10 @@ campgroundRouter.get('/:id/edit', isThePoster, function(req, res, next) {
     });
 });
 
-campgroundRouter.put('/:id', isThePoster, function(req, res, next) {
-    Campgrounds.findOneAndUpdate(req.params.id, req.body.campground).then((campground) => {
+campgroundRouter.put('/:id', midware.isCampGroundPoster, function(req, res, next) {
+    Campgrounds.findByIdAndUpdate(req.params.id, req.body.campground).then((campground) => {
         console.log("update successful");
+        console.log(campground._id);
         res.redirect("/campgrounds/" + req.params.id);
     }).catch((err) => {
         console.log(err);
@@ -62,7 +64,7 @@ campgroundRouter.put('/:id', isThePoster, function(req, res, next) {
 });
 
 // router for delete
-campgroundRouter.delete('/:id', isThePoster, function(req, res, next) {
+campgroundRouter.delete('/:id', midware.isCampGroundPoster, function(req, res, next) {
     Campgrounds.findById(req.params.id).then((campground) => {
         if (campground) {
             var comments = campground.comments;
@@ -86,31 +88,31 @@ campgroundRouter.delete('/:id', isThePoster, function(req, res, next) {
 });
 
 
-//funciton for login check
-function isLogin(req, res, next){
-    if (req.isAuthenticated()) {
-        next();
-    } else {
-        res.redirect('/login');
-    }
-}
+// //funciton for login check
+// function midware.isLogin(req, res, next){
+//     if (req.isAuthenticated()) {
+//         next();
+//     } else {
+//         res.redirect('/login');
+//     }
+// }
 
-//midware for auth check
-function isThePoster(req, res, next) {
-    if (req.isAuthenticated()) {
-        Campgrounds.findById(req.params.id).then((campground) => {
-            if (campground.author.id.equals(req.user._id)) {
-                next();
-            } else {
-                res.redirect("back");
-            }
-        }).catch((err) =>{
-            console.log(err);
-            res.redirect("back");
-        });
-    } else {
-        res.redirect("back");
-    }
-}
+// //midware for auth check
+// function midware.isCampGroundPoster(req, res, next) {
+//     if (req.isAuthenticated()) {
+//         Campgrounds.findById(req.params.id).then((campground) => {
+//             if (campground.author.id.equals(req.user._id)) {
+//                 next();
+//             } else {
+//                 res.redirect("back");
+//             }
+//         }).catch((err) =>{
+//             console.log(err);
+//             res.redirect("back");
+//         });
+//     } else {
+//         res.redirect("back");
+//     }
+// }
 
 module.exports = campgroundRouter;
