@@ -8,6 +8,7 @@ var passport        =   require('passport');
 var passportLocal   =   require('passport-local');
 var User            =   require('./models/user');
 var session         =   require('express-session');
+var methodOverride  =   require('method-override');
 
 var campgroundRouter    =   require('./routers/campgroundRouter');
 var commentRouter       =   require('./routers/commentRouter');
@@ -22,7 +23,11 @@ app.set('port', (process.env.PORT || 3000));
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + "/public"));
 
+// method override for update and delete req
+app.use(methodOverride('_method'));
+
 var connect = mongoose.connect("mongodb://localhost:27017/yelpcamp", {useNewUrlParser: true });
+mongoose.set('useFindAndModify', false);
 connect.then(() => {
     console.log("connect to local mongoDB");
 }).catch((err) => {

@@ -30,13 +30,7 @@ commentRouter.post('/', isLogin, function(req, res, next) {
                     });
                 }).catch((err) => {
                     console.log(err);
-                })
-                // campground.comments.push(comment);
-                // campground.save().then((campground) => {
-                //     console.log("add comment success");
-                // }).catch((err) => {
-                //     console.log(err);
-                // });
+                });
             }
         }).catch((err) => {
             console.log(err);
@@ -49,12 +43,79 @@ commentRouter.post('/', isLogin, function(req, res, next) {
     })
 });
 
-//funciton for auth check
+// router for edit comment
+commentRouter.get('/:commentId/edit', isThePoster,function(req, res, next) {
+    Comment.findById(req.params.commentId).then((comment) => {
+        res.render('comments/edit', {comment:  comment, campgroundId: req.params.id});
+    }).catch((err) => {
+        console.log("err");
+        res.redirect("back");
+    })
+});
+
+commentRouter.put('/:commentId', isThePoster,function(req, res, next) {
+    Comment.findByIdAndUpdate(req.params.commentId, req.body.comment).then((comment) => {
+        console.log("comment update successful");
+        res.redirect('/campgrounds/' + req.params.id);
+    }).catch((err) => {
+        console.log(err);
+        res.redirect('/campgrounds/' + req.params.id);
+    });
+});
+
+// router for delete comment
+commentRouter.delete('/:commentId', isThePoster,function(req, res, next) {
+    Campgrounds.findById(req.params.id).then(function(campground) {
+        var index = 0;
+        var commentid = String(req.params.commentId);
+        for (var i=0; i<campground.comments.length; i++) {
+            var id = (campground.comments[index]).toString();
+            if  (id === commentid) {
+                break;
+            } else {
+                index++;
+            }
+        }
+        campground.comments.splice(index, 1);
+        campground.save().then(function(campground) {
+            console.log("remove the commentid from the campgrouds");
+        })
+        
+    }).then(Comment.findByIdAndRemove(req.params.commentId).then((result) => {
+        console.log(result);
+        res.redirect('/campgrounds/' + req.params.id);
+    }).catch((err) => {
+        console.log(err);
+    })).catch((err) => {
+        console.log(err);
+    });
+    // Comment.findByIdAndRemove(req.params.commentId).then((result) => {
+    //     console.log(result);
+    //     res.redirect('/campgrounds/' + req.params.id);
+    // })
+});
+
+//funciton for login check
 function isLogin(req, res, next){
     if (req.isAuthenticated()) {
         next();
     } else {
         res.redirect('/login');
+    }
+}
+
+// function for auth check
+function isThePoster(req, res, next) {
+    if (req.isAuthenticated()) {
+        Comment.findById(req.params.commentId).then((comment) => {
+            if (comment.author.id.equals(req.user._id)){
+                next();
+            } else {
+                res.redirect("back");
+            }
+        })
+    } else {
+        res.redirect("back");
     }
 }
 
