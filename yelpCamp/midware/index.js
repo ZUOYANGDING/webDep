@@ -9,6 +9,7 @@ midwareObj.isLogin = function (req, res, next){
     if (req.isAuthenticated()) {
         next();
     } else {
+        req.flash("error", "You need to to be logged in to do that!");
         res.redirect('/login');
     }
 }
@@ -20,10 +21,16 @@ midwareObj.isCommentPoster = function (req, res, next) {
             if (comment.author.id.equals(req.user._id)){
                 next();
             } else {
+                req.flash("error", "You do not have permission to do that!");
                 res.redirect("back");
             }
-        })
+        }).catch((err) => {
+            console.log(err);
+            req.flash("error", "Cannot find this campground!");
+            res.redirect("back");
+        });
     } else {
+        req.flash("error", "You need to to be logged in to do that!");
         res.redirect("back");
     }
 }
@@ -36,13 +43,16 @@ midwareObj.isCampGroundPoster = function (req, res, next) {
             if (campground.author.id.equals(req.user._id)) {
                 next();
             } else {
+                req.flash("error", "You do not have permission to do that!");
                 res.redirect("back");
             }
         }).catch((err) =>{
             console.log(err);
+            req.flash("error", "Cannot find this comment!");
             res.redirect("back");
         });
     } else {
+        req.flash("error", "You need to to be logged in to do that! ");
         res.redirect("back");
     }
 }

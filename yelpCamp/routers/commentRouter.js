@@ -10,6 +10,8 @@ commentRouter.get('/new', midware.isLogin, function(req, res, next) {
     Campgrounds.findById(req.params.id).then((campground) => {
         if (campground) {
             res.render("comments/new", {campground: campground});
+        } else {
+            req.flash("error", "Cannot find the matching CampGround!");
         }
     }).catch((err) => {
         console.log(err);
@@ -38,8 +40,10 @@ commentRouter.post('/', midware.isLogin, function(req, res, next) {
         });
         res.statusCode = 200;
         var redirectUrl = "/campgrounds/" + req.params.id;
+        req.flash("success", "Comment post successfully!");
         res.redirect(redirectUrl);
     }).catch((err) => {
+        req.flash("error", "Comment post failed!");
         console.log(err);
     })
 });
@@ -47,7 +51,12 @@ commentRouter.post('/', midware.isLogin, function(req, res, next) {
 // router for edit comment
 commentRouter.get('/:commentId/edit', midware.isCommentPoster,function(req, res, next) {
     Comment.findById(req.params.commentId).then((comment) => {
-        res.render('comments/edit', {comment:  comment, campgroundId: req.params.id});
+        if (comment) {
+            res.render('comments/edit', {comment:  comment, campgroundId: req.params.id});
+        } else {
+            req.flash("error", "Cannot find the comment!");
+            res.redirect("back");
+        }
     }).catch((err) => {
         console.log("err");
         res.redirect("back");
@@ -56,10 +65,17 @@ commentRouter.get('/:commentId/edit', midware.isCommentPoster,function(req, res,
 
 commentRouter.put('/:commentId', midware.isCommentPoster,function(req, res, next) {
     Comment.findByIdAndUpdate(req.params.commentId, req.body.comment).then((comment) => {
-        console.log("comment update successful");
-        res.redirect('/campgrounds/' + req.params.id);
+        if (comment) {
+            console.log("comment update successful");
+            req.flash("success", "Update your comment successfully!");
+            res.redirect('/campgrounds/' + req.params.id);
+        } else {
+            req.flash("error", "Cannot find the comment!");
+            res.redirect("back");
+        }
     }).catch((err) => {
         console.log(err);
+        req.flash("error", "Update your comment failed!");
         res.redirect('/campgrounds/' + req.params.id);
     });
 });
@@ -84,40 +100,14 @@ commentRouter.delete('/:commentId', midware.isCommentPoster,function(req, res, n
         
     }).then(Comment.findByIdAndRemove(req.params.commentId).then((result) => {
         console.log(result);
+        req.flash("success", "Delete your comment successfully!");
         res.redirect('/campgrounds/' + req.params.id);
     }).catch((err) => {
+        req.flash("error", "Delete your comment failed!");
         console.log(err);
     })).catch((err) => {
         console.log(err);
     });
-    // Comment.findByIdAndRemove(req.params.commentId).then((result) => {
-    //     console.log(result);
-    //     res.redirect('/campgrounds/' + req.params.id);
-    // })
 });
-
-// //funciton for login check
-// function isLogin(req, res, next){
-//     if (req.isAuthenticated()) {
-//         next();
-//     } else {
-//         res.redirect('/login');
-//     }
-// }
-
-// // function for auth check
-// function midware.isCommentPoster(req, res, next) {
-//     if (req.isAuthenticated()) {
-//         Comment.findById(req.params.commentId).then((comment) => {
-//             if (comment.author.id.equals(req.user._id)){
-//                 next();
-//             } else {
-//                 res.redirect("back");
-//             }
-//         })
-//     } else {
-//         res.redirect("back");
-//     }
-// }
 
 module.exports = commentRouter;

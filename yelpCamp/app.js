@@ -9,6 +9,7 @@ var passportLocal   =   require('passport-local');
 var User            =   require('./models/user');
 var session         =   require('express-session');
 var methodOverride  =   require('method-override');
+var flash           =   require('connect-flash'); 
 
 var campgroundRouter    =   require('./routers/campgroundRouter');
 var commentRouter       =   require('./routers/commentRouter');
@@ -34,6 +35,9 @@ connect.then(() => {
     console.log(err);
 });
 
+// use flash message
+app.use(flash());
+
 //apply auth by passport
 app.use(session({
     secret: "1234567890987654321",
@@ -49,6 +53,8 @@ passport.deserializeUser(User.deserializeUser());
 // get current user signed in
 app.use(function(req, res, next) {
     res.locals.currentUser = req.user;
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     next();
 });
 
