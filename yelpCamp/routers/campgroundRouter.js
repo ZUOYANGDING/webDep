@@ -4,6 +4,17 @@ var Campgrounds         =   require('../models/campground');
 var Comment             =   require('../models/comment');
 var User                =   require('../models/user');
 var midware             =   require('../midware/index');
+var NodeGeoCoder        =   require('node-geocoder');
+
+var option              =   {
+                            provider: 'google',
+                            httpAdapter: 'https',
+                            apiKey: process.env.GEOCODER_API_KEY,
+                            formatter: null
+};
+
+var geocoder = NodeGeoCoder(option);
+
 
 campgroundRouter.get('/', function(req, res, next) {
     Campgrounds.find({}).then((campgrounds) => {
@@ -15,20 +26,56 @@ campgroundRouter.get('/', function(req, res, next) {
 });
 
 campgroundRouter.post('/', midware.isLogin, function(req, res, next) {
-    Campgrounds.create(req.body).then((campground) => {
-        campground.author.id = req.user._id;
-        campground.author.username = req.user.username;
-        campground.save().then((campground) => {
-            console.log(campground);
-        }).catch((err) => {
-            console.log(err);
-        })
-        res.statusCode = 200;
-        req.flash("success", "Post CampGround successfully!");
-        res.redirect('/campgrounds');
-    }).catch((err) => {
+    var name = req.body.name;
+    var image = req.body.image;
+    var price = req.body.price;
+    var description = req.body.description;
+    var author = {
+        id: req.user._id,
+        username: req.user.username
+    }
+    
+    geocoder.geocode(req.body.location).then(function(position) {
+        if (position.length > 0) {
+            var locationName = position[0].formattedAddress;
+            var lat = position[0].latitude;
+            var lgn = position[0].longitude;
+            console.log(lat+ " " + lgn);
+            var newCampground = {
+                name: name,
+                image: image,
+                price: price,
+                description: description,
+                author: author,
+                location: {
+                    name: locationName,
+                    lat: lat,
+                    lgn: lgn
+                }
+            }
+            Campgrounds.create(newCampground).then((campground) => {
+                // campground.author.id = req.user._id;
+                // campground.author.username = req.user.username;
+                campground.save().then((campground) => {
+                    console.log(campground);
+                }).catch((err) => {
+                    console.log(err);
+                })
+                res.statusCode = 200;
+                req.flash("success", "Post CampGround successfully!");
+                res.redirect('/campgrounds');
+            }).catch((err) => {
+                console.log(err);
+            });
+        } else {
+            req.flash("error", "Cannot find the postion by google map");
+            res.redirect("back");
+        }
+    }).catch((err)=>{
+        req.flash("error", err.message);
         console.log(err);
-    });
+        res.redirect("back");   
+    })
 });
 
 campgroundRouter.get('/new', midware.isLogin, function(req, res, next) {
@@ -65,16 +112,62 @@ campgroundRouter.get('/:id/edit', midware.isCampGroundPoster, function(req, res,
 });
 
 campgroundRouter.put('/:id', midware.isCampGroundPoster, function(req, res, next) {
-    Campgrounds.findByIdAndUpdate(req.params.id, req.body.campground).then((campground) => {
-        console.log("update successful");
-        console.log(campground._id);
-        req.flash("success", "Update your post successfully!");
-        res.redirect("/campgrounds/" + req.params.id);
-    }).catch((err) => {
+    geocoder.geocode(req.body.location).then(function (position) {
+        var name = req.body.campground.name;
+        var image = req.body.campground.image;
+        var price = req.body.campground.price;
+        var description = req.body.description;
+        var author = {
+            id: req.user._id,
+            username: req.user.username
+        }
+        if (position.length > 0) {
+            var lat = position[0].latitude;
+            var lgn = position[0].longitude;
+            var locationName = position[0].formattedAddress;
+            var updateCampground = {
+                name: name,
+                image: image,
+                price: price,
+                description: description,
+                author: author,
+                location: {
+                    name: locationName,
+                    lat: lat,
+                    lgn: lgn
+                }
+            }
+            Campgrounds.findByIdAndUpdate(req.params.id, updateCampground).then((campground) => {
+                console.log("update successful");
+                // console.log(campground.price);
+                // console.log(req.body.campground);
+                req.flash("success", "Update your post successfully!");
+                res.redirect("/campgrounds/" + req.params.id);
+            }).catch((err) => {
+                console.log(err);
+                req.flash("error", "Update your post failed!");
+                res.redirect("/campgrounds/" + req.params.id);
+            });
+        } else {
+            req.flash("error", "Cannot find the location from google map");
+            res.redirect("back");
+        }
+    }).catch((err)=> { 
+        req.flash("error", err.message);
         console.log(err);
-        req.flash("error", "Update your post failed!");
-        res.redirect("/campgrounds/" + req.params.id);
-    });
+        res.redirect("back");
+    })
+    // Campgrounds.findByIdAndUpdate(req.params.id, req.body.campground).then((campground) => {
+    //     console.log("update successful");
+    //     // console.log(campground.price);
+    //     // console.log(req.body.campground);
+    //     req.flash("success", "Update your post successfully!");
+    //     res.redirect("/campgrounds/" + req.params.id);
+    // }).catch((err) => {
+    //     console.log(err);
+    //     req.flash("error", "Update your post failed!");
+    //     res.redirect("/campgrounds/" + req.params.id);
+    // });
 });
 
 // router for delete

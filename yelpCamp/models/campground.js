@@ -23,6 +23,20 @@ var campgroundSchema = new Schema({
             type: String
         }
     },
+    price: {
+        type: String
+    },
+    location: {
+        name: {
+            type: String
+        },
+        lat: {
+            type: Number
+        },
+        lgn: {
+            type: Number
+        }
+    },
     comments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'comments'

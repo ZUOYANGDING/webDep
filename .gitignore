@@ -1,3 +1,5 @@
 node_modules
 mongodb/data
 yelpCamp/public/image
+yelpCamp/.env
+yelpCamp/views/campgrounds/show
