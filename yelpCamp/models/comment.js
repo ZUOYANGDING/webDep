@@ -14,6 +14,10 @@ commentSchema = new Schema ({
     text: {
         type: String,
         required: true
+    },
+    timeCreate: {
+        type: Date,
+        default: Date.now
     }
 });
 

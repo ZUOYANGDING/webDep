@@ -1,5 +1,4 @@
 <%include ../partials/head%>
-<!-- test git ignore again 4 -->
 <div class="container">
     <div class="row">
         <div class="col-md-3">
@@ -19,7 +18,8 @@
                     <h4><a href="#"><%=campground.name%></a></h4>
                     <p><%=campground.description%></p>
                     <p>
-                        <em>Posted by <strong><%=campground.author.username%></strong></em>
+                        <em>Posted by: <strong><a href="/users/<%=campground.author.id%>"><%=campground.author.username%></a></strong>, at <%=campground.timeCreate%></em>
+                        
                     </p>
                     <% if (currentUser) {%>
                         <% if (campground.author.id.equals(currentUser._id)) { %>
@@ -37,8 +37,8 @@
                     <% campground.comments.forEach(function(comment) {%>
                         <div class="row">
                             <div class="col-md-12">
-                                <strong><%= comment.author.username %></strong>
-                                <span class="pull-right">5 days before</span>
+                                <strong><a href="/users/<%=comment.author.id%>"><%= comment.author.username %></a></strong>
+                                <span class="pull-right"><%=moment(comment.timeCreate).fromNow()%></span>
                                 <p><%= comment.text %></p>
                                 <% if (currentUser) {%>
                                     <% if (comment.author.id.equals(currentUser._id)) { %>
@@ -86,5 +86,5 @@ function initMap() {
     });
 }
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=somekey&callback=initMap"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDN0C3UXN9OQ080Omk6-COnkvUusJJcP8o&callback=initMap"></script>
 <%include ../partials/tail%>

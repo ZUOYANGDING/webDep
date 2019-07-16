@@ -1,5 +1,6 @@
 var Campgrounds     =       require('../models/campground');
 var Comment         =       require('../models/comment');
+var User            =       require('../models/user')
 
 var midwareObj = {}
 
@@ -36,7 +37,7 @@ midwareObj.isCommentPoster = function (req, res, next) {
 }
 
 
-// router for campground auth check
+// function for campground auth check
 midwareObj.isCampGroundPoster = function (req, res, next) {
     if (req.isAuthenticated()) {
         Campgrounds.findById(req.params.id).then((campground) => {
@@ -52,7 +53,28 @@ midwareObj.isCampGroundPoster = function (req, res, next) {
             res.redirect("back");
         });
     } else {
-        req.flash("error", "You need to to be logged in to do that! ");
+        req.flash("error", "You need to to be logged in to do that!");
+        res.redirect("back");
+    }
+}
+
+// function for user profile page
+midwareObj.isLoginUser = function(req, res, next) {
+    if (req.isAuthenticated()) {
+        User.findById(req.params.id).then((user) => {
+            if (user._id.equals(req.user._id)) {
+                next();
+            } else {
+                req.equals("error", "You do not have permission to do that!");
+                res.redirect("back");
+            }
+        }).catch((err)=>{
+            console.log(err);
+            req.flash("error", "Cannot find the user");
+            req.redirect("back");
+        });
+    } else {
+        req.flash("error", "You need to be logged in to do that!");
         res.redirect("back");
     }
 }

@@ -12,6 +12,7 @@ var User            =   require('./models/user');
 var session         =   require('express-session');
 var methodOverride  =   require('method-override');
 var flash           =   require('connect-flash'); 
+var moment          =   require('moment');
 
 var campgroundRouter    =   require('./routers/campgroundRouter');
 var commentRouter       =   require('./routers/commentRouter');
@@ -39,6 +40,10 @@ connect.then(() => {
 
 // use flash message
 app.use(flash());
+
+
+// set up the moment
+app.locals.moment = moment;
 
 //apply auth by passport
 app.use(session({
