@@ -3,8 +3,11 @@ var localStratgeMongoose = require('passport-local-mongoose');
 var Schema = mongoose.Schema;
 
 var userSchema = new Schema({
+    // changed
     username: {
-        type: String
+        type: String,
+        unique: true,
+        required: true
     },
     password: {
         type: String   
@@ -18,11 +21,20 @@ var userSchema = new Schema({
     avatar: {
         type: String
     },
+    // changed
     email: {
-        type: String
+        type: String,
+        unique: true,
+        required: true
     },
     description: {
         type: String
+    },
+    resetPasswordToken : {
+        type: String
+    },
+    resetPasswordExpires: {
+        type: Date
     }
 });
 
