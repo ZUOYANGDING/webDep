@@ -17,12 +17,34 @@ var geocoder = NodeGeoCoder(option);
 
 
 campgroundRouter.get('/', function(req, res, next) {
-    Campgrounds.find({}).then((campgrounds) => {
-        res.render("campgrounds/index", {campgrounds:campgrounds});
-    }).catch((err) => {
-        req.flash("error", "404 NOT FOUND!");
-        console.log(err);
-    });
+    var noMatch = null;
+    if (req.query.search) {
+        const result = new RegExp(escapeRegex(req.query.search), 'gi');
+        Campgrounds.find({name: result}).then((campgrounds) => {
+            if (campgrounds.length > 0) {
+                res.render('campgrounds/index', {campgrounds:campgrounds, noMatch:noMatch});
+            } else {
+                noMatch = "There is no matching result for your search. Please try again";
+                res.render('campgrounds/index', {campgrounds:campgrounds, noMatch: noMatch});
+            }
+        }).catch((err) => {
+            console.log(err);
+            req.flash("error", err.message);
+        });
+    } else {
+        Campgrounds.find({}).then((campgrounds) => {
+            res.render("campgrounds/index", {campgrounds:campgrounds, noMatch: noMatch});
+        }).catch((err) => {
+            req.flash("error", "404 NOT FOUND!");
+            console.log(err);
+        }); 
+    }
+    // Campgrounds.find({}).then((campgrounds) => {
+    //     res.render("campgrounds/index", {campgrounds:campgrounds});
+    // }).catch((err) => {
+    //     req.flash("error", "404 NOT FOUND!");
+    //     console.log(err);
+    // });
 });
 
 campgroundRouter.post('/', midware.isLogin, function(req, res, next) {
@@ -195,5 +217,11 @@ campgroundRouter.delete('/:id', midware.isCampGroundPoster, function(req, res, n
         console.log(err);
     });
 });
+
+
+// function for regular expression match
+function escapeRegex(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 
 module.exports = campgroundRouter;
